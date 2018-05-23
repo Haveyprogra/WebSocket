@@ -42,6 +42,8 @@
 		}
 		$("#opposite").empty().append("对话已经建立完成，客服"+msg+"正在与您对话");
 		//alert(msg2);
+		$("#CustomerId").val(msg);
+		
 	}
 	
 	/**用户离线*/
@@ -58,20 +60,15 @@
 	
 	/**发送消息*/
 	function sendMsg() {
-		if ($("#sendDiv").attr("type") == "0") {
-			var msgText = $("#msgText").val();
-			var html = '<a href="javascript:;" class="list-group-item text-right">'
-					+ msgText;
-			html += '<img width="40" src="${pageContext.request.contextPath }/resources/images/default-head.png" class="img-circle margin_left_10 img_width_40">';
-			html += '</a>';
-			$("#chatDiv .list-group").append(html);
-			socket.send(_TEXT_MSG + _SEPARATOR + _TOSERVER + _SEPARATOR + userId
-					+ _SEPARATOR + msgText);
-		}else{
+		if ($("#chat-fasong").attr("type") == "0") {
+			var msgText =$(".div-textarea").html().replace(/[\n\r]/g, '<br>');
+			$(".div-textarea").val("");
+			var CustomerId = $("#CustomerId").val();
+				socket.send(_TEXT_MSG + _SEPARATOR + _TOSERVER + _SEPARATOR + userId + _SEPARATOR + msgText);
+				
+		} else {
 			ajaxFileUploads();
 		}
-		isShine = false;
-		$("#sendDiv").attr("type","0");
 	}
 
 	/**显示文本消息*/
@@ -118,11 +115,41 @@
 .img_width_40 {
 	width: 40px;
 }
+#TheTextArea{
+	width: 100%;
+	height: 80px;
+	display: flex;
+}
+.chatBox-send{
+	    height: 150px;
+}
+.div-textarea{
+	height: 80px;
+	width: 90%;
+	flex: 1;
+	padding: 1%;
+}
+#functionalZone{
+    width: 100%; 
+    margin-bottom: 16px;
+}
+.biaoqing-photo{
+	left: 6px;
+}
+.biaoqing-photo::before{
+	right: 173px;
+}
+.biaoqing-photo::after{
+	right: 173px;
+}
+#chatBox-content-demo{
+	max-height: 352px;
+}
 </style>
 </head>
 <!-- //onbeforeunload="return '真的要关闭此窗口吗?'" -->
 <body >
-
+	<input id="CustomerId" type="hidden"></input>
 	<div id="chatDiv">
 		<a href="#" class="list-group-item active" id="opposite" style="text-align: center;"></a>
 <!-- 		<div class="form-group navbar-fixed-bottom">
@@ -142,11 +169,12 @@
 			</div>
 		</div> -->
 		
-        <div class="chatBox-info">
-            <div class="chatBox-kuang" ref="chatBoxkuang" style="display: inline-block;">
-                <div class="chatBox-send" style=" position: fixed; bottom: 0px; ">
-                    <div class="div-textarea" contenteditable="true"></div>
-                    <div>
+                <div class="chatBox-content">
+                    <div class="chatBox-content-demo" id="chatBox-content-demo" >
+                    </div>
+                </div>           	
+		        <div class="chatBox-send" style=" position: fixed; bottom: 0px; ">
+                    <div id="functionalZone">
                         <button id="chat-biaoqing" class="btn-default-styles">
                             <i class="iconfont icon-biaoqing"></i>
                         </button>
@@ -155,8 +183,11 @@
                                    name="file" id="inputImage" class="hidden"><input type="hidden" id="userId" />
                             <i class="iconfont icon-tuxiang"></i>
                         </label>
-                        <button id="chat-fasong" class="btn-default-styles" onclick="sendMsg(this)"  type="0" ><div class="iconfont icon-fasong" ></div>
-                        </button>
+                    </div>
+                    <div id="TheTextArea">
+	                    <div class="div-textarea" contenteditable="true"></div>
+	                    <button style=" width: 66px; " id="chat-fasong" class="btn-default-styles" onclick="sendMsg(this)"  type="0" ><div class="iconfont icon-fasong" ></div>
+	                    </button>
                     </div>
                     <div class="biaoqing-photo">
                         <ul>
@@ -192,12 +223,76 @@
                             <li><span class="emoji-picker-image" style="background-position: -164px -154px;"></span></li>
                         </ul>
                     </div>
+                   
                 </div>
-            </div>
-        </div>		
-		
 	</div>
 	<script type="text/javascript">
+	$(window).resize(function(){//获取调整浏览器窗口大小事件 
+    	var browserHeight = $(window).height(); //浏览器可视界面高度
+        var headHeight = $('#opposite').outerHeight(true); //获取#opposite元素 的高度 
+        var bottomHeight = $('.chatBox-send').outerHeight(true); //获取.chatBox-send元素 的高度 
+        var contentHeight = browserHeight-headHeight-bottomHeight;// 计算 聊天内容区域最高高度
+        $(".chatBox-content-demo").css("max-height",contentHeight+"px");//设置 聊天内容区域最高高度 
+        //聊天框默认最底部
+        $(document).ready(function () {
+            $("#chatBox-content-demo").scrollTop($("#chatBox-content-demo")[0].scrollHeight);
+        });        
+	});	
+	//发送信息
+    $("#chat-fasong").click(function () {
+        var textContent = $(".div-textarea").html().replace(/[\n\r]/g, '<br>')
+        var myDate = new Date();
+        var Month = myDate.getMonth()+1;
+        if(Month<10){
+        	Month = "0"+ Month;
+        }
+        var time = myDate.getFullYear()+'-'+ Month +'-'+ myDate.getDate()+' '+myDate.getHours()+':'+myDate.getMinutes() +':'+myDate.getSeconds();
+        if (textContent != "") {
+            $(".chatBox-content-demo").append("<div class=\"clearfloat\">" +
+                "<div class=\"author-name\"><small class=\"chat-date\">"+time+"</small> </div> " +
+                "<div class=\"right\"> <div class=\"chat-message\"> " + textContent + " </div> " +
+                "<div class=\"chat-avatars\"><img src=\"../resources/images/icon01.png\" alt=\"头像\" /></div> </div> </div>");
+            //发送后清空输入框
+            $(".div-textarea").html("");
+            //聊天框默认最底部
+            $(document).ready(function () {
+                $("#chatBox-content-demo").scrollTop($("#chatBox-content-demo")[0].scrollHeight);
+            });
+        }
+    });
+	
+	//      发送表情
+    $("#chat-biaoqing").click(function () {
+        $(".biaoqing-photo").toggle();
+    });
+    $(document).click(function () {
+        $(".biaoqing-photo").css("display", "none");
+    });
+    $("#chat-biaoqing").click(function (event) {
+        event.stopPropagation();//阻止事件
+    });
+
+    $(".emoji-picker-image").each(function () {
+        $(this).click(function () {
+            var msgText = $(this).parent().html();
+            $(".chatBox-content-demo").append("<div class=\"clearfloat\">" +
+                "<div class=\"author-name\"><small class=\"chat-date\">2017-12-02 14:26:58</small> </div> " +
+                "<div class=\"right\"> <div class=\"chat-message\"> " + msgText + " </div> " +
+                "<div class=\"chat-avatars\"><img src=\"../resources/images/icon01.png\" alt=\"头像\" /></div> </div> </div>");
+            //发送后关闭表情框
+            $(".biaoqing-photo").toggle();
+			var userId = $("#userId").val();
+			socket.send(_TEXT_MSG + _SEPARATOR + _TOCLIENT + _SEPARATOR
+					+ userId + _SEPARATOR + msgText);
+            //聊天框默认最底部
+            $(document).ready(function () {
+                $("#chatBox-content-demo").scrollTop($("#chatBox-content-demo")[0].scrollHeight);
+            });
+        })
+    });
+	
+	
+	
 /* 	$(document).ready(function() { 
 		$(document).bind("keydown",function(e){ 
 		e=window.event||e; 
